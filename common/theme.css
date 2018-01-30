@@ -1,0 +1,15 @@
+:root {
+  --color-primary: #eb5e55;
+  --color-secondary: #56e39f;
+  --color-accent: #faff7f;
+  --color-neutral: #084c61;
+  --color-neutral-dark: #333;
+  --color-neutral-light: #ebebd3;
+
+  --font-primary: "Carter One", cursive;
+  --font-secondary: Montserrat, sans-serif;
+}
+
+html {
+  font-family: var(--font-primary);
+}
