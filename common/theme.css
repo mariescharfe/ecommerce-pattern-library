@@ -6,10 +6,71 @@
   --color-neutral-dark: #333;
   --color-neutral-light: #ebebd3;
 
-  --font-primary: "Carter One", cursive;
-  --font-secondary: Montserrat, sans-serif;
+  --font-primary: "Montserrat", sans-serif;
+  --font-secondary: "Carter One", cursive;
 }
 
 html {
   font-family: var(--font-primary);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-secondary);
+  color: var(--color-primary);
+}
+
+h4,
+h5,
+h6 {
+  font-family: var(--font-secondary);
+  color: var(--color-secondary);
+}
+
+p,
+ul,
+ol,
+dl,
+dd {
+  font-family: var(--font-primary);
+  color: var(--color-neutral-dark);
+}
+
+q {
+  font-family: var(--font-secondary);
+  color: var(--color-primary);
+}
+
+blockquote,
+cite {
+  font-family: var(--font-primary);
+}
+
+a {
+  color: var(--color-neutral);
+}
+
+mark {
+  background-color: var(--color-accent);
+}
+
+strong, b {
+  font-weight: bold;
+}
+
+em, i, dfn {
+  font-style: italic;
+}
+
+ins, u {
+  text-decoration: underline;
+}
+
+del, s {
+  text-decoration: line-through;
+}
+
+abbr {
+  text-transform: uppercase;
 }
