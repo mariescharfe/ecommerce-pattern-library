@@ -49,6 +49,7 @@ cite {
 
 a {
   color: var(--color-neutral);
+  padding: .5em 1em;
 }
 
 mark {
