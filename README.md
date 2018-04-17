@@ -4,7 +4,7 @@ name: "Bath Bomb Dot Com"
 
 fontUrl: "https://fonts.googleapis.com/css?family=Carter+One|Montserrat:400,400i,700"
 
-font:
+fonts:
   primary: |
     The primary typeface is special and unique sans-serif and can be used for large amounts of body copy.
 
@@ -30,4 +30,4 @@ colors:
 
 ---
 
-Bath Bom Dot Com is a bath bomb making company. We use only the finest ingredients and the dandiest smells! Let us redefine bath blasting experience.
+Bath Bomb Dot Com is a bath bomb making company. We use only the finest ingredients and the dandiest smells! Let us redefine bath blasting experience.

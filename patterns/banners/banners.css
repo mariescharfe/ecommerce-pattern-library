@@ -1,0 +1,47 @@
+.make-dark {
+  color: var(--color-neutral-dark);
+  width: 15rem;
+}
+
+.hero-banner-height {
+  min-height: 14em;
+}
+
+.banner {
+  overflow: hidden;
+  z-index: 1;
+  max-height: 12rem;
+}
+
+.banner-content {
+  overflow: hidden;
+  z-index: 10;
+}
+
+@media only screen and (min-width: 25em) {
+
+  .img-cutoff {
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+}
+
+@media only screen and (min-width: 38em) {
+
+  .hero-banner-content {
+    width: 75%;
+    max-width: 30em;
+  }
+
+  .hero-banner-content h1,
+  .hero-banner-content p {
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .banner-content h1 {
+    width: 100%;
+  }
+
+}

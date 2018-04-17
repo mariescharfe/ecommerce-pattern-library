@@ -1,10 +1,14 @@
 ---
 
-basic-card: |
-  The basic cards are to be used for information only. It can contain a button but should not be a link itself.
+basic-card:
+  width: 400
+  desc: |
+    The basic cards are to be used for information only. It can contain a button but should not be a link itself.
 
-icon-card: |
-  The icon cards are used for call-to-actions on the homepage or highlights on inside pages.
+icon-card:
+  width: 400
+  desc: |
+    The icon cards are used for call-to-actions on the homepage or highlights on inside pages.
 
 ---
 

@@ -1,5 +1,5 @@
 :root {
-  --color-primary: #eb5e55;
+  --color-primary: #e90e52;
   --color-secondary: #56e39f;
   --color-accent: #faff7f;
   --color-neutral: #084c61;
@@ -50,6 +50,7 @@ cite {
 a {
   color: var(--color-neutral);
   padding: .5em 1em;
+  text-decoration: none;
 }
 
 mark {

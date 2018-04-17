@@ -1,0 +1,1 @@
+The header is the very first element the user sees and interacts with when they land on the website, accompanied by its banner. It is home to the main navigation followed by the hero banner and its call-to-action. The header is reserved for the top of the home page to help the viewer navigate throughout the website and to promote important news, inside pages, and actions.

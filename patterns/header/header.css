@@ -1,0 +1,40 @@
+.header {
+  background-color: var(--color-neutral-dark);
+}
+
+.header nav a {
+  text-decoration: none;
+  display: inline-block;
+  width: 100%;
+  color: var(--color-neutral-light);
+  transition: 500ms;
+}
+
+.header nav a:hover {
+  background-color: var(--color-neutral-light);
+  color: var(--color-neutral-dark);
+  transition: 500ms;
+}
+
+.header nav li .active {
+  background-color: #fff;
+  color: var(--color-neutral-dark);
+}
+
+.header nav li .active:hover {
+  background-color: var(--color-neutral-light);
+  color: var(--color-neutral-dark);
+}
+
+@media only screen and (min-width: 38em) {
+
+  .header ul li {
+  display: inline-block;
+  width: 24%;
+  }
+
+  .logo {
+    text-align: left;
+  }
+
+}

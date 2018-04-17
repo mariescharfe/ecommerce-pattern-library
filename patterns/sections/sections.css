@@ -1,0 +1,34 @@
+.quicklinks {
+  background-color: var(--color-neutral-light);
+  transition: 500ms;
+}
+
+.quicklinks i,
+.quicklinks p {
+  color: var(--color-neutral-dark);
+  transition: 500ms;
+}
+
+.quicklinks:hover {
+  color: var(--color-neutral-light);
+  background-color: var(--color-neutral-dark);
+  transition: 500ms;
+}
+
+.quicklinks:hover i,
+.quicklinks:hover p {
+  color: var(--color-neutral-light);
+  transition: 500ms;
+}
+
+.ratings {
+  background-color: var(--color-neutral-light);
+}
+
+.ratings h1 {
+  color: var(--color-neutral-dark);
+}
+
+.ratings i {
+  color: var(--color-primary);
+}
