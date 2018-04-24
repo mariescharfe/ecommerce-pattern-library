@@ -29,8 +29,8 @@
 @media only screen and (min-width: 38em) {
 
   .header ul li {
-  display: inline-block;
-  width: 24%;
+    display: inline-block;
+    width: 24%;
   }
 
   .logo {

@@ -348,9 +348,9 @@ const patternBotIncludes = function (manifest) {
 /** 
  * Patternbot library manifest
  * /Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library
- * @version 1523978239373
+ * @version 1524539240693
  */
-const patternManifest_1523978239373 = {
+const patternManifest_1524539240693 = {
   "commonInfo": {
     "modulifier": [
       "responsive",
@@ -582,7 +582,28 @@ const patternManifest_1523978239373 = {
       "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/navigations",
       "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections"
     ],
-    "pages": []
+    "pages": [
+      {
+        "name": "checkout.html",
+        "namePretty": "Checkout",
+        "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/pages/checkout.html"
+      },
+      {
+        "name": "home.html",
+        "namePretty": "Home",
+        "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/pages/home.html"
+      },
+      {
+        "name": "product-details.html",
+        "namePretty": "Product details",
+        "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/pages/product-details.html"
+      },
+      {
+        "name": "products.html",
+        "namePretty": "Products",
+        "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/pages/products.html"
+      }
+    ]
   },
   "userPatterns": [
     {
@@ -628,10 +649,22 @@ const patternManifest_1523978239373 = {
       "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons",
       "html": [
         {
-          "name": "buttons",
-          "namePretty": "Buttons",
-          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/buttons.html",
-          "localPath": "patterns/buttons/buttons.html"
+          "name": "ghost-buttons",
+          "namePretty": "Ghost buttons",
+          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/ghost-buttons.html",
+          "localPath": "patterns/buttons/ghost-buttons.html"
+        },
+        {
+          "name": "light-buttons",
+          "namePretty": "Light buttons",
+          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/light-buttons.html",
+          "localPath": "patterns/buttons/light-buttons.html"
+        },
+        {
+          "name": "standard-buttons",
+          "namePretty": "Standard buttons",
+          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/standard-buttons.html",
+          "localPath": "patterns/buttons/standard-buttons.html"
         }
       ],
       "md": [
@@ -767,6 +800,12 @@ const patternManifest_1523978239373 = {
           "namePretty": "Text input",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/text-input.html",
           "localPath": "patterns/forms/text-input.html"
+        },
+        {
+          "name": "total-form",
+          "namePretty": "Total form",
+          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/total-form.html",
+          "localPath": "patterns/forms/total-form.html"
         }
       ],
       "md": [
@@ -850,6 +889,12 @@ const patternManifest_1523978239373 = {
       "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections",
       "html": [
         {
+          "name": "content",
+          "namePretty": "Content",
+          "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/content.html",
+          "localPath": "patterns/sections/content.html"
+        },
+        {
           "name": "quicklinks",
           "namePretty": "Quicklinks",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/quicklinks.html",
@@ -902,5 +947,5 @@ const patternManifest_1523978239373 = {
   }
 };
 
-patternBotIncludes(patternManifest_1523978239373);
+patternBotIncludes(patternManifest_1524539240693);
 }());

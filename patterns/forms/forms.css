@@ -37,3 +37,15 @@ textarea {
   min-height: 5em;
   overflow: auto;
 }
+
+.spacegrid div {
+  padding-right: .25em;
+}
+
+@media only screen and (min-width: 60em) {
+
+  .spacegrid div {
+    padding-right: .75em;
+  }
+
+}
