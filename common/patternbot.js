@@ -348,9 +348,9 @@ const patternBotIncludes = function (manifest) {
 /** 
  * Patternbot library manifest
  * /Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library
- * @version 1524539240693
+ * @version 1524562183526
  */
-const patternManifest_1524539240693 = {
+const patternManifest_1524562183526 = {
   "commonInfo": {
     "modulifier": [
       "responsive",
@@ -652,19 +652,22 @@ const patternManifest_1524539240693 = {
           "name": "ghost-buttons",
           "namePretty": "Ghost buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/ghost-buttons.html",
-          "localPath": "patterns/buttons/ghost-buttons.html"
+          "localPath": "patterns/buttons/ghost-buttons.html",
+          "readme": {}
         },
         {
           "name": "light-buttons",
           "namePretty": "Light buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/light-buttons.html",
-          "localPath": "patterns/buttons/light-buttons.html"
+          "localPath": "patterns/buttons/light-buttons.html",
+          "readme": {}
         },
         {
           "name": "standard-buttons",
           "namePretty": "Standard buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/standard-buttons.html",
-          "localPath": "patterns/buttons/standard-buttons.html"
+          "localPath": "patterns/buttons/standard-buttons.html",
+          "readme": {}
         }
       ],
       "md": [
@@ -947,5 +950,5 @@ const patternManifest_1524539240693 = {
   }
 };
 
-patternBotIncludes(patternManifest_1524539240693);
+patternBotIncludes(patternManifest_1524562183526);
 }());

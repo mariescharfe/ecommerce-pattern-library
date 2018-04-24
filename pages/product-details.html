@@ -11,18 +11,38 @@
   <script type="application/json" data-pattern="header/header"></script>
 
   <div class="grid wrapper">
-    <div class="unit [ xs-1 s-1 m-1-2 l-1-2 xl-1-2] island-1-4 push">
+    <div class="unit [ xs-1 s-1 m-2-3 l-1-2 xl-1-2] island push">
       <script type="application/json" data-pattern="cards/icon-card"></script>
     </div>
-    <div class="unit [ xs-1 s-1 m-1-2 l-1-2 xl-1-2]">
-      <script type="application/json" data-pattern="buttons/standard-buttons"></script>
+    <div class="unit [ xs-1 s-1 m-1-3 l-1-2 xl-1-2] center-content-vertical text-center push">
+      <script type="application/json" data-pattern="buttons/standard-buttons">
+        {
+          "a": "Add to Cart"
+        }
+      </script>
     </div>
     <div class="grid push">
-      <div class="unit [ xs-1 s-1 m-1 l-1-2 xl-1-2 ] island-1-4">
-        <script type="application/json" data-pattern="sections/ratings"></script>
+      <div class="unit [ xs-1 s-1 m-1-2 l-1-2 xl-1-2 ] island-1-4">
+        <script type="application/json" data-pattern="sections/ratings">
+        {
+          "h1": "Great",
+          ".by": "Gus",
+          ".from": "Edmonton",
+          ".reviewed": "20/04/2018",
+          ".comment": "There aren't any flashy colours or dramatic fizz shows. There's just a lingering, beautiful jasmine and mimosa scent which - surprisingly for its lightness - you can smell off the water."
+        }
+        </script>
       </div>
-      <div class="unit [ xs-1 s-1 m-1 l-1-2 xl-1-2 ] island-1-4">
-        <script type="application/json" data-pattern="sections/ratings"></script>
+      <div class="unit [ xs-1 s-1 m-1-2 l-1-2 xl-1-2 ] island-1-4">
+        <script type="application/json" data-pattern="sections/ratings">
+        {
+          "h1": "Amazing",
+          ".by": "Sally",
+          ".from": "Alberta",
+          ".reviewed": "27/03/2018",
+          ".comment": "I fell in love with this bath bomb. When I dropped this beauty in the tub, I enjoyed the color blend show & as it fizzed, a relaxing & refreshing floral smell surfaced to fill the bathroom."
+        }
+        </script>
       </div>
       </div>
     </div>
