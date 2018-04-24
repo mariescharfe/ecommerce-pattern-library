@@ -86,11 +86,17 @@ const patternBotIncludes = function (manifest) {
     `},
   };
 
+  let jsFileQueue = {
+    sync: [],
+    async: [],
+  };
   let downloadedAssets = {};
 
   const downloadHandler = function (e) {
+    const id = (e.target.hasAttribute('src')) ? e.target.getAttribute('src') : e.target.getAttribute('href');
+
     e.target.removeEventListener('load', downloadHandler);
-    downloadedAssets[e.target.getAttribute('href')] = true;
+    downloadedAssets[id] = true;
   };
 
   const findRootPath = function () {
@@ -101,7 +107,6 @@ const patternBotIncludes = function (manifest) {
     for (i = 0; i < t; i++) {
       if (rootMatcher.test(allScripts[i].src)) {
         return allScripts[i].src.split(rootMatcher)[0];
-        break;
       }
     }
   };
@@ -116,7 +121,7 @@ const patternBotIncludes = function (manifest) {
     newLink.addEventListener('load', downloadHandler);
 
     document.head.appendChild(newLink);
-  }
+  };
 
   const bindAllCssFiles = function (rootPath) {
     if (manifest.commonInfo && manifest.commonInfo.readme && manifest.commonInfo.readme.attributes &&  manifest.commonInfo.readme.attributes.fontUrl) {
@@ -139,11 +144,59 @@ const patternBotIncludes = function (manifest) {
     });
   };
 
+  const queueAllJsFiles = function (rootPath) {
+    if (manifest.patternLibFiles && manifest.patternLibFiles.js) {
+      manifest.patternLibFiles.js.forEach((js) => {
+        const href = `..${manifest.config.commonFolder}/${js.filename}`;
+
+        downloadedAssets[href] = false;
+        jsFileQueue.sync.push(href);
+      });
+    }
+
+    manifest.userPatterns.forEach((pattern) => {
+      if (!pattern.js) return;
+
+      pattern.js.forEach((js) => {
+        const href = `../${js.localPath}`;
+
+        downloadedAssets[href] = false;
+        jsFileQueue.async.push(href);
+      });
+    });
+  };
+
+  const addJsFile = function (href) {
+    const newScript = document.createElement('script');
+
+    newScript.setAttribute('src', href);
+    document.body.appendChild(newScript);
+
+    return newScript;
+  };
+
+  const bindNextJsFile = function (e) {
+    if (e && e.target) {
+      e.target.removeEventListener('load', bindNextJsFile);
+      downloadedAssets[e.target.getAttribute('src')] = true;
+    }
+
+    if (jsFileQueue.sync.length > 0) {
+      const scriptTag = addJsFile(jsFileQueue.sync.shift());
+      scriptTag.addEventListener('load', bindNextJsFile);
+    } else {
+      jsFileQueue.async.forEach((js) => {
+        const scriptTag = addJsFile(js);
+        scriptTag.addEventListener('load', downloadHandler);
+      });
+    }
+  };
+
   const getPatternInfo = function (patternElem) {
     let patternInfoJson;
     const data = patternElem.innerText.trim();
 
-    if (!data) return {}
+    if (!data) return {};
 
     try {
       patternInfoJson = JSON.parse(data);
@@ -172,9 +225,50 @@ const patternBotIncludes = function (manifest) {
     };
   };
 
+  const correctHrefPaths = function (html) {
+    const hrefSearch = /href\s*=\s*"\.\.\/\.\.\//g;
+    const srcSearch = /src\s*=\s*"\.\.\/\.\.\//g;
+    const urlSearch = /url\((["']*)\.\.\/\.\.\//g;
+
+    return html
+      .replace(hrefSearch, 'href="../')
+      .replace(srcSearch, 'src="../')
+      .replace(urlSearch, 'url($1../')
+    ;
+  };
+
+  const buildAccurateSelectorFromElem = function (elem) {
+    let theSelector = elem.tagName.toLowerCase();
+
+    if (elem.id) theSelector += `#${elem.id}`;
+    if (elem.getAttribute('role')) theSelector += `[role="${elem.getAttribute('role')}"]`;
+    if (elem.classList.length > 0) theSelector += `.${[].join.call(elem.classList, '.')}`;
+
+    theSelector += ':first-of-type';
+
+    return theSelector;
+  };
+
+  /**
+   * This is an ugly mess: Blink does not properly render SVGs when using DOMParser alone.
+   * But, I need DOMParser to determine the correct element to extract.
+   *
+   * I only want to get the first element within the `<body>` tag of the loaded document.
+   * This dumps the whole, messy, HTML document into a temporary `<div>`,
+   * then uses the DOMParser version, of the same element, to create an accurate selector,
+   * then finds that single element in the temporary `<div>` using the selector and returns it.
+   */
   const htmlStringToElem = function (html) {
+    let theSelector = '';
+    const tmpDoc = document.createElement('div');
+    const finalTmpDoc = document.createElement('div');
     const doc = (new DOMParser()).parseFromString(html, 'text/html');
-    return doc.body;
+
+    tmpDoc.innerHTML = html;
+    theSelector = buildAccurateSelectorFromElem(doc.body.firstElementChild);
+    finalTmpDoc.appendChild(tmpDoc.querySelector(theSelector));
+
+    return finalTmpDoc;
   };
 
   const replaceElementValue = function (elem, sel, data) {
@@ -197,7 +291,7 @@ const patternBotIncludes = function (manifest) {
 
     if (!patternDetails.html) return;
 
-    patternOutElem = htmlStringToElem(patternDetails.html);
+    patternOutElem = htmlStringToElem(correctHrefPaths(patternDetails.html));
     patternData = getPatternInfo(patternElem);
 
     Object.keys(patternData).forEach((sel) => {
@@ -234,7 +328,7 @@ const patternBotIncludes = function (manifest) {
   };
 
   const hideLoadingScreen = function () {
-    const allDownloadedInterval = setInterval(() => {
+    let allDownloadedInterval = setInterval(() => {
       if (Object.values(downloadedAssets).includes(false)) return;
 
       clearInterval(allDownloadedInterval);
@@ -272,7 +366,7 @@ const patternBotIncludes = function (manifest) {
           if (resp.status >= 200 && resp.status <= 299) {
             return resp.text();
           } else {
-            console.group('Cannot location pattern');
+            console.group('Cannot locate pattern');
             console.log(resp.url);
             console.log(`Error ${resp.status}: ${resp.statusText}`);
             console.groupEnd();
@@ -328,11 +422,13 @@ const patternBotIncludes = function (manifest) {
 
     rootPath = findRootPath();
     bindAllCssFiles(rootPath);
+    queueAllJsFiles(rootPath);
     allPatternTags = findAllPatternTags();
     allPatterns = constructAllPatterns(rootPath, allPatternTags);
 
     loadAllPatterns(allPatterns).then((allLoadedPatterns) => {
       renderAllPatterns(allPatternTags, allLoadedPatterns);
+      bindNextJsFile();
       hideLoadingScreen();
     }).catch((e) => {
       console.group('Pattern load error');
@@ -348,9 +444,9 @@ const patternBotIncludes = function (manifest) {
 /** 
  * Patternbot library manifest
  * /Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library
- * @version 1524562183526
+ * @version 65e8f8f3f154d09f90108d4244d2ae1e35c64ba0
  */
-const patternManifest_1524562183526 = {
+const patternManifest_65e8f8f3f154d09f90108d4244d2ae1e35c64ba0 = {
   "commonInfo": {
     "modulifier": [
       "responsive",
@@ -525,7 +621,9 @@ const patternManifest_1524562183526 = {
           "primary": 0,
           "opposite": 255
         }
-      }
+      },
+      "bodyRaw": "\nBath Bomb Dot Com is a bath bomb making company. We use only the finest ingredients and the dandiest smells! Let us redefine bath blasting experience.\n",
+      "bodyBasic": "Bath Bomb Dot Com is a bath bomb making company. We use only the finest ingredients and the dandiest smells! Let us redefine bath blasting experience."
     },
     "icons": [
       "alert",
@@ -603,7 +701,8 @@ const patternManifest_1524562183526 = {
         "namePretty": "Products",
         "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/pages/products.html"
       }
-    ]
+    ],
+    "js": []
   },
   "userPatterns": [
     {
@@ -614,6 +713,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "banner",
           "namePretty": "Banner",
+          "filename": "banner",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/banners/banner.html",
           "localPath": "patterns/banners/banner.html",
           "readme": {}
@@ -621,6 +721,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "herobanner",
           "namePretty": "Herobanner",
+          "filename": "herobanner",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/banners/herobanner.html",
           "localPath": "patterns/banners/herobanner.html",
           "readme": {}
@@ -630,6 +731,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/banners/README.md",
           "localPath": "patterns/banners/README.md"
         }
@@ -638,10 +740,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "banners",
           "namePretty": "Banners",
+          "filename": "banners",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/banners/banners.css",
           "localPath": "patterns/banners/banners.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "buttons",
@@ -651,6 +755,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "ghost-buttons",
           "namePretty": "Ghost buttons",
+          "filename": "ghost-buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/ghost-buttons.html",
           "localPath": "patterns/buttons/ghost-buttons.html",
           "readme": {}
@@ -658,6 +763,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "light-buttons",
           "namePretty": "Light buttons",
+          "filename": "light-buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/light-buttons.html",
           "localPath": "patterns/buttons/light-buttons.html",
           "readme": {}
@@ -665,6 +771,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "standard-buttons",
           "namePretty": "Standard buttons",
+          "filename": "standard-buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/standard-buttons.html",
           "localPath": "patterns/buttons/standard-buttons.html",
           "readme": {}
@@ -674,6 +781,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/README.md",
           "localPath": "patterns/buttons/README.md"
         }
@@ -682,10 +790,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "buttons",
           "namePretty": "Buttons",
+          "filename": "buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/buttons/buttons.css",
           "localPath": "patterns/buttons/buttons.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "cards",
@@ -695,6 +805,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "basic-card",
           "namePretty": "Basic card",
+          "filename": "basic-card",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/cards/basic-card.html",
           "localPath": "patterns/cards/basic-card.html",
           "readme": {
@@ -704,6 +815,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "icon-card",
           "namePretty": "Icon card",
+          "filename": "icon-card",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/cards/icon-card.html",
           "localPath": "patterns/cards/icon-card.html",
           "readme": {
@@ -715,6 +827,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/cards/README.md",
           "localPath": "patterns/cards/README.md"
         }
@@ -723,10 +836,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "cards",
           "namePretty": "Cards",
+          "filename": "cards",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/cards/cards.css",
           "localPath": "patterns/cards/cards.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "footer",
@@ -736,6 +851,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "footer",
           "namePretty": "Footer",
+          "filename": "footer",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/footer/footer.html",
           "localPath": "patterns/footer/footer.html"
         }
@@ -744,6 +860,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/footer/README.md",
           "localPath": "patterns/footer/README.md"
         }
@@ -752,10 +869,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "footer",
           "namePretty": "Footer",
+          "filename": "footer",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/footer/footer.css",
           "localPath": "patterns/footer/footer.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "forms",
@@ -765,48 +884,56 @@ const patternManifest_1524562183526 = {
         {
           "name": "checkboxes",
           "namePretty": "Checkboxes",
+          "filename": "checkboxes",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/checkboxes.html",
           "localPath": "patterns/forms/checkboxes.html"
         },
         {
           "name": "date-picker",
           "namePretty": "Date picker",
+          "filename": "date-picker",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/date-picker.html",
           "localPath": "patterns/forms/date-picker.html"
         },
         {
           "name": "drop-down",
           "namePretty": "Drop down",
+          "filename": "drop-down",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/drop-down.html",
           "localPath": "patterns/forms/drop-down.html"
         },
         {
           "name": "login",
           "namePretty": "Login",
+          "filename": "login",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/login.html",
           "localPath": "patterns/forms/login.html"
         },
         {
           "name": "radio-buttons",
           "namePretty": "Radio buttons",
+          "filename": "radio-buttons",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/radio-buttons.html",
           "localPath": "patterns/forms/radio-buttons.html"
         },
         {
           "name": "text-area",
           "namePretty": "Text area",
+          "filename": "text-area",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/text-area.html",
           "localPath": "patterns/forms/text-area.html"
         },
         {
           "name": "text-input",
           "namePretty": "Text input",
+          "filename": "text-input",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/text-input.html",
           "localPath": "patterns/forms/text-input.html"
         },
         {
           "name": "total-form",
           "namePretty": "Total form",
+          "filename": "total-form",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/total-form.html",
           "localPath": "patterns/forms/total-form.html"
         }
@@ -815,6 +942,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/README.md",
           "localPath": "patterns/forms/README.md"
         }
@@ -823,10 +951,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "forms",
           "namePretty": "Forms",
+          "filename": "forms",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/forms/forms.css",
           "localPath": "patterns/forms/forms.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "header",
@@ -836,6 +966,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "header",
           "namePretty": "Header",
+          "filename": "header",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/header/header.html",
           "localPath": "patterns/header/header.html"
         }
@@ -844,6 +975,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/header/README.md",
           "localPath": "patterns/header/README.md"
         }
@@ -852,10 +984,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "header",
           "namePretty": "Header",
+          "filename": "header",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/header/header.css",
           "localPath": "patterns/header/header.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "navigations",
@@ -865,6 +999,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "search",
           "namePretty": "Search",
+          "filename": "search",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/navigations/search.html",
           "localPath": "patterns/navigations/search.html"
         }
@@ -873,6 +1008,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/navigations/README.md",
           "localPath": "patterns/navigations/README.md"
         }
@@ -881,10 +1017,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "navigations",
           "namePretty": "Navigations",
+          "filename": "navigations",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/navigations/navigations.css",
           "localPath": "patterns/navigations/navigations.css"
         }
-      ]
+      ],
+      "js": []
     },
     {
       "name": "sections",
@@ -894,12 +1032,14 @@ const patternManifest_1524562183526 = {
         {
           "name": "content",
           "namePretty": "Content",
+          "filename": "content",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/content.html",
           "localPath": "patterns/sections/content.html"
         },
         {
           "name": "quicklinks",
           "namePretty": "Quicklinks",
+          "filename": "quicklinks",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/quicklinks.html",
           "localPath": "patterns/sections/quicklinks.html",
           "readme": {}
@@ -907,6 +1047,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "ratings",
           "namePretty": "Ratings",
+          "filename": "ratings",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/ratings.html",
           "localPath": "patterns/sections/ratings.html",
           "readme": {}
@@ -916,6 +1057,7 @@ const patternManifest_1524562183526 = {
         {
           "name": "readme",
           "namePretty": "Readme",
+          "filename": "README",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/README.md",
           "localPath": "patterns/sections/README.md"
         }
@@ -924,10 +1066,12 @@ const patternManifest_1524562183526 = {
         {
           "name": "sections",
           "namePretty": "Sections",
+          "filename": "sections",
           "path": "/Users/Scharfe/Dropbox/Graphic Design/Semester 4/web-dev-4/ecommerce-pattern-library/ecommerce-pattern-library/patterns/sections/sections.css",
           "localPath": "patterns/sections/sections.css"
         }
-      ]
+      ],
+      "js": []
     }
   ],
   "config": {
@@ -950,5 +1094,5 @@ const patternManifest_1524562183526 = {
   }
 };
 
-patternBotIncludes(patternManifest_1524562183526);
+patternBotIncludes(patternManifest_65e8f8f3f154d09f90108d4244d2ae1e35c64ba0);
 }());

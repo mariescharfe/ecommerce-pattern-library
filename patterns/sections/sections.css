@@ -32,3 +32,10 @@
 .ratings i {
   color: var(--color-primary);
 }
+
+.make-small {
+  padding: 25px;
+  width: 100px;
+  height: 100px;
+  margin: auto;
+}
